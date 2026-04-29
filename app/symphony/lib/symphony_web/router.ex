@@ -23,6 +23,7 @@ defmodule SymphonyWeb.Router do
     get "/resource_types", ResourceTypeController, :index
     get "/entitlements", EntitlementController, :index
     get "/grants", GrantController, :index
+    get "/events", EventController, :index
 
     resources "/musicians", MusicianController, except: [:new, :edit]
     resources "/audience_members", AudienceMemberController, except: [:new, :edit]

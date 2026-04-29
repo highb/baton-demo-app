@@ -52,7 +52,7 @@ flag suspicious values (e.g. percent > 10000 basis points).
 ---
 
 ### No nav between admin pages
-**Status:** TODO
+**Status:** DONE (73042a4)
 
 `/admin/instruments`, `/admin/venues`, etc. exist, but there's no
 sidebar or top-bar listing them. The landing page (`/`) is still the
@@ -61,6 +61,16 @@ anything.
 
 **Fix:** add an `/admin` index page or admin layout with a sidebar
 listing all 14 resources. Add an `/admin` route or redirect.
+
+**Resolution:** `SymphonyWeb.AdminNav` `on_mount` hook captures the
+URL via `attach_hook(:set_current_path, :handle_params, …)`. Admin
+routes are wrapped in `live_session :admin, on_mount:
+SymphonyWeb.AdminNav` so every admin LiveView gets `@current_path`.
+`Layouts.app/1` renders a grouped sidebar with active-route
+highlighting when the path starts with `/admin`. Top header trimmed
+to a Symphony brand link plus an Admin shortcut. Landing page (`/`)
+is still phx.new boilerplate — see separate "Default Phoenix landing
+page" entry below.
 
 ---
 

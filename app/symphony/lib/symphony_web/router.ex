@@ -26,6 +26,16 @@ defmodule SymphonyWeb.Router do
     live_session :admin, on_mount: SymphonyWeb.AdminNav do
       live "/", DashboardLive, :index
 
+      live "/musicians", MusicianLive.Index, :index
+      live "/musicians/new", MusicianLive.Form, :new
+      live "/musicians/:id", MusicianLive.Show, :show
+      live "/musicians/:id/edit", MusicianLive.Form, :edit
+
+      live "/audience_members", AudienceMemberLive.Index, :index
+      live "/audience_members/new", AudienceMemberLive.Form, :new
+      live "/audience_members/:id", AudienceMemberLive.Show, :show
+      live "/audience_members/:id/edit", AudienceMemberLive.Form, :edit
+
       live "/instruments", InstrumentLive.Index, :index
     live "/instruments/new", InstrumentLive.Form, :new
     live "/instruments/:id", InstrumentLive.Show, :show

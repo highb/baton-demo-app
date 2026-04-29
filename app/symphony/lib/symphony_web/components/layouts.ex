@@ -82,6 +82,9 @@ defmodule SymphonyWeb.Layouts do
 
   @admin_nav [
     {"Dashboard", "/admin", :dashboard},
+    {"People", nil, :identity_header},
+    {"Musicians", "/admin/musicians", :identity},
+    {"Audience members", "/admin/audience_members", :identity},
     {"Performances", "/admin/performances", :scheduling},
     {"Tickets & sales", nil, :ticketing_header},
     {"Price tiers", "/admin/price_tiers", :ticketing},

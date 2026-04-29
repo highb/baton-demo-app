@@ -33,8 +33,8 @@ defmodule SymphonyWeb.Admin.DashboardLive do
   defp load_stats do
     %{
       identity: [
-        {"Musicians", count(Musician), "/admin/musicians", :unbuilt},
-        {"Audience members", count(AudienceMember), "/admin/audience_members", :unbuilt}
+        {"Musicians", count(Musician), "/admin/musicians", :live},
+        {"Audience members", count(AudienceMember), "/admin/audience_members", :live}
       ],
       orchestra: [
         {"Venues", count(Venue), "/admin/venues", :live},

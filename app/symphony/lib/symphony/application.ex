@@ -10,6 +10,7 @@ defmodule Symphony.Application do
     children = [
       SymphonyWeb.Telemetry,
       Symphony.Repo,
+      Symphony.RateLimit,
       {DNSCluster, query: Application.get_env(:symphony, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Symphony.PubSub},
       # Start a worker by calling: Symphony.Worker.start_link(arg)

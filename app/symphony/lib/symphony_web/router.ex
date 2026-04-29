@@ -13,6 +13,7 @@ defmodule SymphonyWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
     plug SymphonyWeb.Plugs.ApiAuth
+    plug SymphonyWeb.Plugs.ApiRateLimit
   end
 
   scope "/api/v1", SymphonyWeb.Api, as: :api do

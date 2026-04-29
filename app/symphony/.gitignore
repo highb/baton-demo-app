@@ -35,3 +35,8 @@ symphony-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# SQLite database files (development/test).
+*.db
+*.db-shm
+*.db-wal
+

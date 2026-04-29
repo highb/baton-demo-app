@@ -375,6 +375,57 @@ possible.
 
 ---
 
+### Chaos / "real-world API" toggles for connector exercising
+**Status:** TODO
+
+Real connectors stumble on a predictable shortlist of upstream
+behaviors that aren't tested in textbook unit tests. Symphony already
+has the schema to model them; what it needs is an admin page that
+toggles each behavior on/off so a connector author can run their sync
+against each toggle and watch what blows up. Goes after the API +
+auth slice (these toggles need an API surface to bend).
+
+**Tier 1 (must-have):**
+- **Latency injection** — slider 0-30s per endpoint class
+  (read / write / event_feed). Catches connectors that don't set
+  HTTP timeouts.
+- **5xx flake rate** — percent chance of returning 503 + Retry-After.
+  Tests retry/backoff.
+- **Pagination cursor expiry** — cursors return 410 Gone with a fresh
+  resume cursor. Tests connector resume logic.
+- **Token rotation mid-sync** — next N requests return 401 forcing
+  re-auth. Tests credential-rotation flow.
+- **Rate-limit dishonesty** — 429 says `Retry-After: 1` but actually
+  keeps 429ing for 30s. Tests connectors that trust the header
+  blindly.
+
+**Tier 2 (nice-to-have):**
+- **Stale read after write** — `Grant` returns success but
+  `ListGrants` lags by N seconds.
+- **Async action drag** — action stays `PENDING` for N seconds.
+- **Inconsistent pagination** — duplicates across pages, empty pages
+  with `has_more=true`, oversize pages.
+- **Orphaned resources** — `parent_resource_id` points at deleted
+  rows.
+- **Action-says-complete-but-state-lags** — `GetActionStatus`
+  returns `COMPLETE` but resource state hasn't propagated.
+
+**Implementation sketch:**
+- `/admin/chaos` LiveView.
+- `Symphony.Chaos` GenServer (ETS-backed, BEAM-session scoped — toggles
+  reset on `mix phx.server` restart, which is the right default).
+- API plug consults the GenServer on each request before calling the
+  controller body.
+- Two organizational moves:
+  1. **Group toggles by what they test** ("retry/backoff", "resume
+     logic", "consistency tolerance") not by what they do, so connector
+     authors browse by capability they want to verify.
+  2. **One-click presets**: "Healthy", "Flaky upstream", "Eventually
+     consistent", "Hostile". Each preset flips a coordinated set of
+     toggles.
+
+---
+
 ### Connector dashboard not built
 **Status:** TODO
 

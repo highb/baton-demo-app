@@ -61,4 +61,22 @@ defmodule Symphony.InventoryFixtures do
 
     sheet_music
   end
+
+  @doc """
+  Generate a instrument.
+  """
+  def instrument_fixture(attrs \\ %{}) do
+    {:ok, instrument} =
+      attrs
+      |> Enum.into(%{
+        asset_tag: "some asset_tag",
+        condition: "some condition",
+        family: "some family",
+        kind: "some kind",
+        status: "some status"
+      })
+      |> Symphony.Inventory.create_instrument()
+
+    instrument
+  end
 end

@@ -19,6 +19,23 @@ defmodule SymphonyWeb.Router do
     pipe_through :api
 
     get "/whoami", WhoamiController, :show
+
+    resources "/musicians", MusicianController, except: [:new, :edit]
+    resources "/audience_members", AudienceMemberController, except: [:new, :edit]
+    resources "/sections", SectionController, except: [:new, :edit]
+    resources "/ensembles", EnsembleController, except: [:new, :edit]
+    resources "/venues", VenueController, except: [:new, :edit]
+    resources "/instruments", InstrumentController, except: [:new, :edit]
+    resources "/equipment", EquipmentController, except: [:new, :edit]
+    resources "/sheet_music", SheetMusicController, except: [:new, :edit]
+    resources "/performances", PerformanceController, except: [:new, :edit]
+    resources "/roles", RoleController, except: [:new, :edit]
+    resources "/permissions", PermissionController, except: [:new, :edit]
+    resources "/applications", ApplicationController, except: [:new, :edit]
+    resources "/price_tiers", PriceTierController, except: [:new, :edit]
+    resources "/promo_codes", PromoCodeController, except: [:new, :edit]
+    resources "/venue_sections", VenueSectionController, except: [:new, :edit]
+    resources "/season_subscriptions", SeasonSubscriptionController, except: [:new, :edit]
   end
 
   scope "/", SymphonyWeb do

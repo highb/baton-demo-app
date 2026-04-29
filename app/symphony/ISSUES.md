@@ -146,7 +146,7 @@ runs the seed script in a sandboxed transaction and asserts row counts.
 ## Schema scaffolds we deliberately skipped
 
 ### Musicians admin LiveView
-**Status:** TODO
+**Status:** DONE (e147ce5)
 
 Skipped from the auto-gen pass because the form would have ~17
 inputs (login, primary_email, given/family/middle name, account_type,
@@ -158,10 +158,19 @@ separate edit screens for password reset vs profile edit.
 **Fix:** hand-build the LiveView. Reuse `change_account_*` action
 patterns from the SDK design doc instead of a single mega-form.
 
+**Resolution:** hand-built `MusicianLive.{Index,Show,Form}`. Index
+is searchable (login/email/name/employee_id) + status-filterable.
+Show renders 6 grouped sections (Identity, Status, Auth, Profile,
+Emails, Login aliases) with preloaded has_many associations. Form
+groups 3 fieldsets (Identity, Status, Auth) with select inputs for
+the account_type and status enums. Password rotation as a separate
+action-driven flow is still TODO — see new "Credential rotation /
+account-action UI" entry below.
+
 ---
 
 ### Audience members admin LiveView
-**Status:** TODO
+**Status:** DONE (e147ce5)
 
 Same shape as Musicians — many fields, multiple addresses and
 emails, loyalty tier and points. Skipped for the same reason.
@@ -169,6 +178,32 @@ emails, loyalty tier and points. Skipped for the same reason.
 **Fix:** hand-built CRM-style LiveView. Almost certainly wants a
 search/filter index too, since the audience table will be the largest
 in the system.
+
+**Resolution:** hand-built `AudienceMemberLive.{Index,Show,Form}`.
+Index has search + status filter + loyalty-tier filter, tier badges,
+marketing-opt-in indicator. Show renders Identity, Status, Loyalty
+(tier / points / marketing-opt-in), Auth, Emails, and Addresses
+sections. Form has 4 fieldsets (Identity, Status, Loyalty, Auth)
+with the loyalty_tier select and points number input.
+
+---
+
+### Credential rotation / account-action UI
+**Status:** TODO
+
+The Musician and AudienceMember forms expose a raw `password_hash`
+text input for back-office override, but the proper provisioning
+path is the SDK-modeled action set: `musician.create_account`,
+`musician.disable`, `musician.enable`, `musician.update_profile`,
+plus `api_key.rotate` and `door_badge.revoke`. There's no UI for
+any of these yet — they'd be buttons on the show pages that record
+into `action_invocations` and emit `audit_events`.
+
+**Fix:** add per-resource action buttons that POST through a new
+`Symphony.Actions` context, write `action_invocations` rows, and
+emit corresponding `audit_events`. Mirror the credential-options
+shape from baton-sdk (random / no / SSO / encrypted password) for
+account creation.
 
 ---
 

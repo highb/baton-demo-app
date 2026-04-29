@@ -20,6 +20,10 @@ defmodule SymphonyWeb.Router do
 
     get "/whoami", WhoamiController, :show
 
+    get "/resource_types", ResourceTypeController, :index
+    get "/entitlements", EntitlementController, :index
+    get "/grants", GrantController, :index
+
     resources "/musicians", MusicianController, except: [:new, :edit]
     resources "/audience_members", AudienceMemberController, except: [:new, :edit]
     resources "/sections", SectionController, except: [:new, :edit]

@@ -444,7 +444,8 @@ role_specs = [
   {"subscriber", "Season Subscriber",
    ~w(subscription:read seat:reserve_priority order:read_own performance:attend)},
   {"patron", "Patron", ~w(performance:attend order:read_own)},
-  {"comp_recipient", "Comp Recipient", ~w(performance:attend)}
+  {"comp_recipient", "Comp Recipient", ~w(performance:attend)},
+  {"baton_connector", "Baton Connector", :all}
 ]
 
 role_id_by_slug =
@@ -478,7 +479,8 @@ assignments = [
   {yo_yo_id, "musician"},
   {librarian_id, "librarian"},
   {stage_mgr_id, "stage_manager"},
-  {box_office_id, "box_office_agent"}
+  {box_office_id, "box_office_agent"},
+  {sync_bot_id, "baton_connector"}
 ]
 
 for {musician_id, role_slug} <- assignments do

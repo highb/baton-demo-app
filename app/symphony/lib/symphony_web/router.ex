@@ -12,6 +12,13 @@ defmodule SymphonyWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug SymphonyWeb.Plugs.ApiAuth
+  end
+
+  scope "/api/v1", SymphonyWeb.Api, as: :api do
+    pipe_through :api
+
+    get "/whoami", WhoamiController, :show
   end
 
   scope "/", SymphonyWeb do

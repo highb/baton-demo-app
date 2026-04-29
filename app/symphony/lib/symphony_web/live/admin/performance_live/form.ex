@@ -7,7 +7,7 @@ defmodule SymphonyWeb.Admin.PerformanceLive.Form do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         {@page_title}
         <:subtitle>Use this form to manage performance records in your database.</:subtitle>

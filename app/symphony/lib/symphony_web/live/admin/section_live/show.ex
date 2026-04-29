@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.SectionLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Section {@section.id}
         <:subtitle>This is a section record from your database.</:subtitle>

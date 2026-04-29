@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.SheetMusicLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Sheet music {@sheet_music.id}
         <:subtitle>This is a sheet_music record from your database.</:subtitle>

@@ -23,7 +23,10 @@ defmodule SymphonyWeb.Router do
   scope "/admin", SymphonyWeb.Admin do
     pipe_through :browser
 
-    live "/instruments", InstrumentLive.Index, :index
+    live_session :admin, on_mount: SymphonyWeb.AdminNav do
+      live "/", DashboardLive, :index
+
+      live "/instruments", InstrumentLive.Index, :index
     live "/instruments/new", InstrumentLive.Form, :new
     live "/instruments/:id", InstrumentLive.Show, :show
     live "/instruments/:id/edit", InstrumentLive.Form, :edit
@@ -92,6 +95,7 @@ defmodule SymphonyWeb.Router do
     live "/performances/new", PerformanceLive.Form, :new
     live "/performances/:id", PerformanceLive.Show, :show
     live "/performances/:id/edit", PerformanceLive.Form, :edit
+    end
   end
 
   # Other scopes may use custom stacks.

@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.EnsembleLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Ensemble {@ensemble.id}
         <:subtitle>This is a ensemble record from your database.</:subtitle>

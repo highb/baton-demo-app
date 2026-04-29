@@ -31,6 +31,8 @@ defmodule SymphonyWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
+  attr :current_path, :string, default: nil, doc: "request path used for active-nav highlighting"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -39,37 +41,106 @@ defmodule SymphonyWeb.Layouts do
       <div class="flex-1">
         <a href="/" class="flex-1 flex w-fit items-center gap-2">
           <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
+          <span class="text-sm font-semibold">Symphony</span>
         </a>
       </div>
       <div class="flex-none">
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
+            <a href="/admin" class="btn btn-ghost">Admin</a>
           </li>
           <li>
             <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
           </li>
         </ul>
       </div>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
+    <%= if admin_path?(@current_path) do %>
+      <div class="flex">
+        <.admin_sidebar current_path={@current_path} />
+        <main class="flex-1 px-4 py-8 sm:px-6 lg:px-8">
+          <div class="mx-auto max-w-5xl space-y-4">
+            {render_slot(@inner_block)}
+          </div>
+        </main>
       </div>
-    </main>
+    <% else %>
+      <main class="px-4 py-20 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl space-y-4">
+          {render_slot(@inner_block)}
+        </div>
+      </main>
+    <% end %>
 
     <.flash_group flash={@flash} />
     """
+  end
+
+  defp admin_path?(nil), do: false
+  defp admin_path?(path) when is_binary(path), do: String.starts_with?(path, "/admin")
+
+  @admin_nav [
+    {"Dashboard", "/admin", :dashboard},
+    {"Performances", "/admin/performances", :scheduling},
+    {"Tickets & sales", nil, :ticketing_header},
+    {"Price tiers", "/admin/price_tiers", :ticketing},
+    {"Promo codes", "/admin/promo_codes", :ticketing},
+    {"Season subscriptions", "/admin/season_subscriptions", :ticketing},
+    {"Venue sections", "/admin/venue_sections", :ticketing},
+    {"Orchestra", nil, :orchestra_header},
+    {"Venues", "/admin/venues", :orchestra},
+    {"Ensembles", "/admin/ensembles", :orchestra},
+    {"Sections", "/admin/sections", :orchestra},
+    {"Inventory", nil, :inventory_header},
+    {"Instruments", "/admin/instruments", :inventory},
+    {"Equipment", "/admin/equipment", :inventory},
+    {"Sheet music", "/admin/sheet_music", :inventory},
+    {"RBAC", nil, :rbac_header},
+    {"Roles", "/admin/roles", :rbac},
+    {"Permissions", "/admin/permissions", :rbac},
+    {"Applications", "/admin/applications", :rbac}
+  ]
+
+  @doc "Renders the admin sidebar with active-route highlighting."
+  attr :current_path, :string, default: nil
+
+  def admin_sidebar(assigns) do
+    assigns = Phoenix.Component.assign(assigns, :nav, @admin_nav)
+
+    ~H"""
+    <aside class="w-56 shrink-0 border-r border-base-300 px-3 py-6">
+      <nav class="flex flex-col gap-1 text-sm">
+        <%= for {label, path, kind} <- @nav do %>
+          <%= if path do %>
+            <a
+              href={path}
+              class={[
+                "rounded px-2 py-1 transition-colors",
+                if(active?(@current_path, path),
+                  do: "bg-primary text-primary-content font-semibold",
+                  else: "hover:bg-base-200"
+                )
+              ]}
+            >
+              {label}
+            </a>
+          <% else %>
+            <div class="mt-3 mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-base-content/60">
+              {label}
+            </div>
+          <% end %>
+        <% end %>
+      </nav>
+    </aside>
+    """
+  end
+
+  defp active?(nil, _), do: false
+  defp active?(current, "/admin"), do: current == "/admin"
+
+  defp active?(current, path) do
+    current == path or String.starts_with?(current, path <> "/")
   end
 
   @doc """

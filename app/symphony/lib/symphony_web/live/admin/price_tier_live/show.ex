@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.PriceTierLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Price tier {@price_tier.id}
         <:subtitle>This is a price_tier record from your database.</:subtitle>

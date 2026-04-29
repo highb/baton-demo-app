@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.EquipmentLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Equipment {@equipment.id}
         <:subtitle>This is a equipment record from your database.</:subtitle>

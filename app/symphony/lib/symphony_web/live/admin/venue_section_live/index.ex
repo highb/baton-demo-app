@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.VenueSectionLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Listing Venue sections
         <:actions>

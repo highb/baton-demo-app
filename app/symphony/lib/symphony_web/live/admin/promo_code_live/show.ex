@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.PromoCodeLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Promo code {@promo_code.id}
         <:subtitle>This is a promo_code record from your database.</:subtitle>

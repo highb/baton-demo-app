@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.ApplicationLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Application {@application.id}
         <:subtitle>This is a application record from your database.</:subtitle>

@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.PerformanceLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Performance {@performance.id}
         <:subtitle>This is a performance record from your database.</:subtitle>

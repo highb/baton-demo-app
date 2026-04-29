@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.InstrumentLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Instrument {@instrument.id}
         <:subtitle>This is a instrument record from your database.</:subtitle>

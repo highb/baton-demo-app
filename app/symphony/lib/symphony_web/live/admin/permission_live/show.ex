@@ -6,7 +6,7 @@ defmodule SymphonyWeb.Admin.PermissionLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash}>
+    <Layouts.app flash={@flash} current_path={@current_path}>
       <.header>
         Permission {@permission.id}
         <:subtitle>This is a permission record from your database.</:subtitle>

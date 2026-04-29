@@ -5,6 +5,93 @@ Tracked gaps from the database + admin LiveView build. Each entry has a
 
 ---
 
+## Connector integration
+
+### `baton-connector` service user is purely seed data
+**Status:** TODO
+
+The seed inserts a `Symphony.Identity.Musician` with
+`account_type=:service`, `login="baton-connector"`,
+`employee_id="SVC-001"`, plus a `Symphony.Secrets.ApiKey` named
+"baton-connector primary" with `hashed_secret =
+sha256:<sha256("demo-secret")>` pointing at it. Nothing in the
+running system uses either row:
+
+- No baton-sdk-shaped API surface (no `/api/baton`, no gRPC, no
+  ListResources / ListEntitlements / ListGrants / Grant / Revoke /
+  CreateAccount endpoints).
+- No API-key auth middleware. Bearer tokens against `/admin/*` or
+  any other route are never validated against `api_keys.hashed_secret`.
+- No Go connector binary. The cloned `baton-sdk` is a sibling repo
+  at `/Volumes/src-apfsx/github.com/highb/baton-sdk`; no
+  `baton-symphony` connector lives anywhere.
+- No callers consult that musician's session, last_login_at, or
+  grants.
+
+This is the **single biggest "schema claims X but nothing implements
+X"** gap in the project. The whole point of the schema is to be a
+baton-sdk exemplar; right now it's just a database that *could* be a
+baton-sdk exemplar.
+
+**Why this matters:** every other capability we've documented in
+docs/database-design.md (`SYNC`, `PROVISION`, `ACCOUNT_PROVISIONING`,
+`EVENT_FEED_V2`, etc.) is theoretical until something at the wire
+level actually exercises them.
+
+**Fix (in dependency order):**
+
+1. **Symphony API.** Add a new `SymphonyWeb.Api` scope that exposes
+   the resource surface in baton-sdk shape. JSON-over-HTTP is
+   simplest; gRPC is closer to baton's native protocol but pulls in
+   a much heavier toolchain. JSON paths roughly mirror the SDK
+   service methods:
+   - `GET /api/v1/resource_types`
+   - `GET /api/v1/resources?resource_type_id=…&page_token=…`
+   - `GET /api/v1/resources/:type/:id`
+   - `GET /api/v1/entitlements?resource_type_id=…`
+   - `GET /api/v1/grants?resource_type=…&resource_id=…`
+   - `POST /api/v1/grants` / `DELETE /api/v1/grants/:id`
+   - `POST /api/v1/accounts` (CreateAccount)
+   - `POST /api/v1/credentials/rotate`
+   - `GET /api/v1/events?cursor=…` (event feed)
+   - `POST /api/v1/actions/invoke` / `GET /api/v1/actions/:id`
+   - `GET /api/v1/tickets/schemas` + ticket CRUD
+
+2. **API-key auth plug.** Pipeline plug that:
+   - Reads `Authorization: Bearer <token>` from the request.
+   - Hashes the token (`:crypto.hash(:sha256, token) |>
+     Base.encode16(case: :lower) |> ("sha256:" <> &1)`).
+   - Looks up the row in `api_keys` where `hashed_secret` matches
+     and `expires_at` is nil or > now.
+   - Sets `assigns[:current_actor]` to the linked Musician.
+   - Updates `last_used_at`.
+   - Emits a `usage` audit_event.
+   - Rejects with 401 otherwise.
+
+3. **Authorization layer.** Once the actor is known, gate each
+   endpoint by checking `Symphony.Rbac.has_permission?(actor,
+   permission_slug)` against the seeded role catalog. The
+   `baton-connector` service account would need a role with `*:read`
+   for sync and explicit grant-management permissions for
+   provisioning.
+
+4. **`baton-symphony` connector** in a separate Go repo. Implements
+   `connectorbuilder.ConnectorBuilderV2`, `ResourceProvisionerV2`,
+   `AccountManagerV2`, `CredentialManager`, `EventProviderV2`,
+   `TicketManager`, and `GlobalActionProvider` against the Symphony
+   JSON API. Configured with the bearer token; advertises the full
+   capability set documented in docs/database-design.md §4.
+
+5. **Connector dashboard** (separate ISSUES.md entry below) becomes
+   a useful read-only mirror of what the connector sees, useful for
+   debugging.
+
+Once those four exist and the Go connector successfully syncs into a
+local C1 instance (or `baton` CLI for local exercise), the seed row
+stops being a placeholder.
+
+---
+
 ## UI / Forms
 
 ### FK fields render as raw integer inputs

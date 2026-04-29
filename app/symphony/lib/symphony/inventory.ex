@@ -98,4 +98,190 @@ defmodule Symphony.Inventory do
   def change_instrument(%Instrument{} = instrument, attrs \\ %{}) do
     Instrument.changeset(instrument, attrs)
   end
+
+  alias Symphony.Inventory.Equipment
+
+  @doc """
+  Returns the list of equipment.
+
+  ## Examples
+
+      iex> list_equipment()
+      [%Equipment{}, ...]
+
+  """
+  def list_equipment do
+    Repo.all(from e in Equipment, order_by: [asc: e.asset_tag])
+  end
+
+  @doc """
+  Gets a single equipment.
+
+  Raises if the Equipment does not exist.
+
+  ## Examples
+
+      iex> get_equipment!(123)
+      %Equipment{}
+
+  """
+  def get_equipment!(id), do: Repo.get!(Equipment, id)
+
+  @doc """
+  Creates a equipment.
+
+  ## Examples
+
+      iex> create_equipment(%{field: value})
+      {:ok, %Equipment{}}
+
+      iex> create_equipment(%{field: bad_value})
+      {:error, ...}
+
+  """
+  def create_equipment(attrs) do
+    %Equipment{}
+    |> Equipment.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a equipment.
+
+  ## Examples
+
+      iex> update_equipment(equipment, %{field: new_value})
+      {:ok, %Equipment{}}
+
+      iex> update_equipment(equipment, %{field: bad_value})
+      {:error, ...}
+
+  """
+  def update_equipment(%Equipment{} = equipment, attrs) do
+    equipment
+    |> Equipment.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a Equipment.
+
+  ## Examples
+
+      iex> delete_equipment(equipment)
+      {:ok, %Equipment{}}
+
+      iex> delete_equipment(equipment)
+      {:error, ...}
+
+  """
+  def delete_equipment(%Equipment{} = equipment) do
+    Repo.delete(equipment)
+  end
+
+  @doc """
+  Returns a data structure for tracking equipment changes.
+
+  ## Examples
+
+      iex> change_equipment(equipment)
+      %Todo{...}
+
+  """
+  def change_equipment(%Equipment{} = equipment, attrs \\ %{}) do
+    Equipment.changeset(equipment, attrs)
+  end
+
+  alias Symphony.Inventory.SheetMusic
+
+  @doc """
+  Returns the list of sheet_music.
+
+  ## Examples
+
+      iex> list_sheet_music()
+      [%SheetMusic{}, ...]
+
+  """
+  def list_sheet_music do
+    Repo.all(from s in SheetMusic, order_by: [asc: s.composer, asc: s.title])
+  end
+
+  @doc """
+  Gets a single sheet_music.
+
+  Raises if the Sheet music does not exist.
+
+  ## Examples
+
+      iex> get_sheet_music!(123)
+      %SheetMusic{}
+
+  """
+  def get_sheet_music!(id), do: Repo.get!(SheetMusic, id)
+
+  @doc """
+  Creates a sheet_music.
+
+  ## Examples
+
+      iex> create_sheet_music(%{field: value})
+      {:ok, %SheetMusic{}}
+
+      iex> create_sheet_music(%{field: bad_value})
+      {:error, ...}
+
+  """
+  def create_sheet_music(attrs) do
+    %SheetMusic{}
+    |> SheetMusic.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a sheet_music.
+
+  ## Examples
+
+      iex> update_sheet_music(sheet_music, %{field: new_value})
+      {:ok, %SheetMusic{}}
+
+      iex> update_sheet_music(sheet_music, %{field: bad_value})
+      {:error, ...}
+
+  """
+  def update_sheet_music(%SheetMusic{} = sheet_music, attrs) do
+    sheet_music
+    |> SheetMusic.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a SheetMusic.
+
+  ## Examples
+
+      iex> delete_sheet_music(sheet_music)
+      {:ok, %SheetMusic{}}
+
+      iex> delete_sheet_music(sheet_music)
+      {:error, ...}
+
+  """
+  def delete_sheet_music(%SheetMusic{} = sheet_music) do
+    Repo.delete(sheet_music)
+  end
+
+  @doc """
+  Returns a data structure for tracking sheet_music changes.
+
+  ## Examples
+
+      iex> change_sheet_music(sheet_music)
+      %Todo{...}
+
+  """
+  def change_sheet_music(%SheetMusic{} = sheet_music, attrs \\ %{}) do
+    SheetMusic.changeset(sheet_music, attrs)
+  end
 end

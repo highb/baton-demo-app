@@ -27,6 +27,71 @@ defmodule SymphonyWeb.Router do
     live "/instruments/new", InstrumentLive.Form, :new
     live "/instruments/:id", InstrumentLive.Show, :show
     live "/instruments/:id/edit", InstrumentLive.Form, :edit
+
+    live "/equipment", EquipmentLive.Index, :index
+    live "/equipment/new", EquipmentLive.Form, :new
+    live "/equipment/:id", EquipmentLive.Show, :show
+    live "/equipment/:id/edit", EquipmentLive.Form, :edit
+
+    live "/sheet_music", SheetMusicLive.Index, :index
+    live "/sheet_music/new", SheetMusicLive.Form, :new
+    live "/sheet_music/:id", SheetMusicLive.Show, :show
+    live "/sheet_music/:id/edit", SheetMusicLive.Form, :edit
+
+    live "/venues", VenueLive.Index, :index
+    live "/venues/new", VenueLive.Form, :new
+    live "/venues/:id", VenueLive.Show, :show
+    live "/venues/:id/edit", VenueLive.Form, :edit
+
+    live "/ensembles", EnsembleLive.Index, :index
+    live "/ensembles/new", EnsembleLive.Form, :new
+    live "/ensembles/:id", EnsembleLive.Show, :show
+    live "/ensembles/:id/edit", EnsembleLive.Form, :edit
+
+    live "/sections", SectionLive.Index, :index
+    live "/sections/new", SectionLive.Form, :new
+    live "/sections/:id", SectionLive.Show, :show
+    live "/sections/:id/edit", SectionLive.Form, :edit
+
+    live "/roles", RoleLive.Index, :index
+    live "/roles/new", RoleLive.Form, :new
+    live "/roles/:id", RoleLive.Show, :show
+    live "/roles/:id/edit", RoleLive.Form, :edit
+
+    live "/permissions", PermissionLive.Index, :index
+    live "/permissions/new", PermissionLive.Form, :new
+    live "/permissions/:id", PermissionLive.Show, :show
+    live "/permissions/:id/edit", PermissionLive.Form, :edit
+
+    live "/applications", ApplicationLive.Index, :index
+    live "/applications/new", ApplicationLive.Form, :new
+    live "/applications/:id", ApplicationLive.Show, :show
+    live "/applications/:id/edit", ApplicationLive.Form, :edit
+
+    live "/price_tiers", PriceTierLive.Index, :index
+    live "/price_tiers/new", PriceTierLive.Form, :new
+    live "/price_tiers/:id", PriceTierLive.Show, :show
+    live "/price_tiers/:id/edit", PriceTierLive.Form, :edit
+
+    live "/promo_codes", PromoCodeLive.Index, :index
+    live "/promo_codes/new", PromoCodeLive.Form, :new
+    live "/promo_codes/:id", PromoCodeLive.Show, :show
+    live "/promo_codes/:id/edit", PromoCodeLive.Form, :edit
+
+    live "/venue_sections", VenueSectionLive.Index, :index
+    live "/venue_sections/new", VenueSectionLive.Form, :new
+    live "/venue_sections/:id", VenueSectionLive.Show, :show
+    live "/venue_sections/:id/edit", VenueSectionLive.Form, :edit
+
+    live "/season_subscriptions", SeasonSubscriptionLive.Index, :index
+    live "/season_subscriptions/new", SeasonSubscriptionLive.Form, :new
+    live "/season_subscriptions/:id", SeasonSubscriptionLive.Show, :show
+    live "/season_subscriptions/:id/edit", SeasonSubscriptionLive.Form, :edit
+
+    live "/performances", PerformanceLive.Index, :index
+    live "/performances/new", PerformanceLive.Form, :new
+    live "/performances/:id", PerformanceLive.Show, :show
+    live "/performances/:id/edit", PerformanceLive.Form, :edit
   end
 
   # Other scopes may use custom stacks.

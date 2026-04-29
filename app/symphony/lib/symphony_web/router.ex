@@ -20,6 +20,15 @@ defmodule SymphonyWeb.Router do
     get "/", PageController, :home
   end
 
+  scope "/admin", SymphonyWeb.Admin do
+    pipe_through :browser
+
+    live "/instruments", InstrumentLive.Index, :index
+    live "/instruments/new", InstrumentLive.Form, :new
+    live "/instruments/:id", InstrumentLive.Show, :show
+    live "/instruments/:id/edit", InstrumentLive.Form, :edit
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", SymphonyWeb do
   #   pipe_through :api

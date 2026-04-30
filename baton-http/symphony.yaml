@@ -70,7 +70,7 @@ resource_types:
         mapping_type: resource
         resource_mapping:
           id: cel:string(item.id)
-          display_name: 'cel:has(item.given_name) && has(item.family_name) ? item.given_name + " " + item.family_name : item.login'
+          display_name: cel:item.login
           user_traits:
             login: cel:item.login
             emails:
@@ -96,7 +96,7 @@ resource_types:
         mapping_type: resource
         resource_mapping:
           id: cel:string(item.id)
-          display_name: 'cel:has(item.given_name) && has(item.family_name) ? item.given_name + " " + item.family_name : item.login'
+          display_name: cel:item.login
           user_traits:
             login: cel:item.login
             emails:
@@ -126,7 +126,7 @@ resource_types:
         resource_mapping:
           id: cel:string(item.id)
           display_name: cel:item.name
-          description: cel:item.description
+          description: 'cel:has(item.description) ? item.description : ""'
           group_traits:
             profile:
               name: cel:item.name
@@ -177,7 +177,7 @@ resource_types:
         resource_mapping:
           id: cel:string(item.id)
           display_name: cel:item.name
-          description: cel:item.description
+          description: 'cel:has(item.description) ? item.description : ""'
           group_traits:
             profile:
               name: cel:item.name
@@ -233,7 +233,7 @@ resource_types:
         resource_mapping:
           id: cel:string(item.id)
           display_name: cel:item.display_name
-          description: cel:item.description
+          description: 'cel:has(item.description) ? item.description : ""'
           role_traits:
             profile:
               slug: cel:item.slug
@@ -371,7 +371,7 @@ resource_types:
         resource_mapping:
           id: cel:string(item.id)
           display_name: 'cel:item.asset_tag + " (" + item.category + ")"'
-          description: cel:item.description
+          description: 'cel:has(item.description) ? item.description : ""'
     static_entitlements:
       - id: checkout
         slug: checkout
@@ -493,7 +493,7 @@ resource_types:
         resource_mapping:
           id: cel:string(item.id)
           display_name: cel:item.display_name
-          description: cel:item.description
+          description: 'cel:has(item.description) ? item.description : ""'
     static_entitlements:
       - id: holder
         slug: holder

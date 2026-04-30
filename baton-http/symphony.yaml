@@ -326,14 +326,14 @@ resource_types:
         slug: owner
         display_name: tmpl:"{{.resource.display_name}} owner"
         description: tmpl:"Primary owner of {{.resource.display_name}}"
-        purpose: ownership
+        purpose: assignment
         grantable_to:
           - musician
       - id: curator
         slug: curator
         display_name: tmpl:"{{.resource.display_name}} curator"
         description: tmpl:"Curator of {{.resource.display_name}}"
-        purpose: ownership
+        purpose: assignment
         grantable_to:
           - musician
     grants:
@@ -416,14 +416,14 @@ resource_types:
         slug: owner
         display_name: tmpl:"{{.resource.display_name}} owner"
         description: tmpl:"Primary owner of {{.resource.display_name}}"
-        purpose: ownership
+        purpose: assignment
         grantable_to:
           - musician
       - id: curator
         slug: curator
         display_name: tmpl:"{{.resource.display_name}} curator"
         description: tmpl:"Curator of {{.resource.display_name}}"
-        purpose: ownership
+        purpose: assignment
         grantable_to:
           - musician
     grants:

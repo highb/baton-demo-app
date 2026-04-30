@@ -8,7 +8,7 @@ Tracked gaps from the database + admin LiveView build. Each entry has a
 ## Connector integration
 
 ### `baton-connector` service user is purely seed data
-**Status:** TODO
+**Status:** PARTIAL — sync path live, provisioning still TODO
 
 The seed inserts a `Symphony.Identity.Musician` with
 `account_type=:service`, `login="baton-connector"`,
@@ -89,6 +89,44 @@ level actually exercises them.
 Once those four exist and the Go connector successfully syncs into a
 local C1 instance (or `baton` CLI for local exercise), the seed row
 stops being a placeholder.
+
+**Progress (2026-04-29):**
+
+- ✅ **Step 1 (API surface):** done. 16 CRUD resource endpoints (`mix
+  phx.gen.json`) plus hand-written `/api/v1/resource_types`,
+  `/api/v1/entitlements`, `/api/v1/grants`, `/api/v1/events`,
+  `/api/v1/whoami` — see commits `d5aefea`, `cd36ee4`, `c54552c`,
+  `b28577f`. Grant *writes*, account creation, credential rotation,
+  and action invoke/status are NOT yet implemented; sync-only path
+  is complete.
+- ✅ **Step 2 (auth):** done in `b28577f`.
+  `SymphonyWeb.Plugs.ApiAuth` validates `Authorization: Bearer …`
+  against `api_keys.hashed_secret`, sets `:current_actor`.
+- ✅ **Step 3 (authz):** done in `b28577f`. `Symphony.Authz` joins
+  `role_assignments → role_permissions → permissions`.
+  Per-endpoint `RequirePermission` plug exists but is not yet wired
+  to any endpoint — see "Per-endpoint permission gates" below.
+- ✅ **Bonus — rate limiting:** done in `44211fd`. `hammer`-backed
+  per-API-key buckets (6000/min read, 600/min write) emit 429 with
+  `Retry-After` and a `RateLimitDescription`-shaped JSON body so
+  connector retry logic exercises end-to-end.
+- 🟡 **Step 4 (connector binary):** instead of a custom Go binary
+  using baton-sdk, switched to **baton-http** (config-driven).
+  Connector config lives at `baton-http/symphony.yaml` (relative to
+  the demo-app repo root). Wires up sync of musicians,
+  audience_members, sections, ensembles, roles, applications,
+  instruments, equipment, sheet_music, performances, and
+  season_subscriptions plus their grants. Skipped per design:
+  api_key, door_badge, security_finding, role_scope_binding, venue,
+  venue_section, seat, promo_code (no useful grants in current
+  data model).
+- 🟡 **Provisioning** (`POST/DELETE /api/v1/grants`,
+  `POST /api/v1/accounts/create_account`,
+  `POST /api/v1/credentials/rotate`,
+  `POST /api/v1/actions/invoke` + status) is still TODO on the
+  Symphony side, and baton-http's README marks provisioning as
+  "Coming soon" too. So sync-only is the end state until both
+  sides ship grant writes.
 
 ---
 
@@ -272,6 +310,30 @@ marketing-opt-in indicator. Show renders Identity, Status, Loyalty
 (tier / points / marketing-opt-in), Auth, Emails, and Addresses
 sections. Form has 4 fieldsets (Identity, Status, Loyalty, Auth)
 with the loyalty_tier select and points number input.
+
+---
+
+### Per-endpoint permission gates not wired to API routes
+**Status:** TODO
+
+`SymphonyWeb.Plugs.RequirePermission` exists (`b28577f`) and reads
+`Symphony.Authz` for permission checks, but no API route currently
+plugs it. Authenticated = anything-goes. The seeded `baton_connector`
+role has all 41 permissions so the connector works regardless, but
+a future read-only role couldn't be enforced.
+
+**Fix:** add `plug SymphonyWeb.Plugs.RequirePermission, "<slug>"` to
+each controller, mapping endpoints to permission slugs from the
+catalog. Skeleton:
+- GET `/musicians`, `/musicians/:id` → `musician:read_all`
+- POST `/musicians` → `musician:create`
+- DELETE `/musicians/:id` → `musician:disable` (we don't have a
+  `:delete` slug; using disable is a closer match to the SDK's
+  account-action semantics)
+- similar pattern for the rest
+
+Once wired, add a second seeded role (e.g. `read_only_connector`)
+with just `*:read_all` permissions to demonstrate the gate.
 
 ---
 

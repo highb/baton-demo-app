@@ -1,0 +1,505 @@
+# baton-http connector config for the Symphony demo app.
+#
+# Symphony is a Phoenix/SQLite reference implementation that exposes a
+# baton-sdk-shaped REST API at http://localhost:4000/api/v1. See
+# ../app/symphony/docs/database-design.md for the schema rationale and
+# ../app/symphony/lib/symphony/catalog.ex for the source of truth on
+# resource types and entitlements.
+#
+# This config wires up sync-only behaviour. Provisioning (grant/revoke,
+# account creation, credential rotation, action invocation) is "Coming
+# soon" in baton-http and not yet implemented in Symphony either —
+# tracked in ../app/symphony/ISSUES.md under "Connector integration".
+#
+# Run:
+#   export SYMPHONY_API_TOKEN=demo-secret
+#   baton-http --config-path baton-http/symphony.yaml
+
+version: "1"
+app_name: Symphony
+app_description: Symphony — baton-sdk demo orchestra app
+
+connect:
+  base_url: http://localhost:4000/api/v1
+  auth:
+    type: bearer
+    token: "${SYMPHONY_API_TOKEN}"
+  request_defaults:
+    content_type: application/json
+    headers:
+      Accept: application/json
+  # Symphony list endpoints are unpaginated for the demo dataset
+  # (small enough to fit in one response). The /api/v1/events feed is
+  # the only cursor-paginated endpoint and isn't consumed here.
+  pagination:
+    strategy: none
+
+# ---------------------------------------------------------------------------
+# Resource types
+# ---------------------------------------------------------------------------
+#
+# Conventions used throughout:
+#   - Symphony list responses are `{"data": [...]}` → items_path: data.
+#   - Show responses are `{"data": {...}}` (not used by this config).
+#   - Symphony entitlement slugs are namespaced (e.g. "section:member"),
+#     but baton-http's local entitlement_id is the bare suffix (e.g.
+#     "member"). Grants endpoints return the namespaced slug; we use
+#     `mapping_type: conditional_grant` to dispatch to the right local id.
+#   - The /api/v1/grants endpoint takes resource_type + resource_id query
+#     params and dispatches server-side to the appropriate source table.
+
+resource_types:
+
+  # -----------------------------------------------------------------------
+  # User-typed populations (musicians = staff, audience_members = customers)
+  #
+  # Both carry trait `user`. They're principals of grants, not granted
+  # to themselves, so skip_entitlements_and_grants.
+  # -----------------------------------------------------------------------
+
+  musician:
+    name: Musician
+    description: Symphony staff — players, conductors, librarians, service accounts.
+    traits:
+      - user
+    list:
+      request:
+        url: /musicians
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: 'cel:has(item.given_name) && has(item.family_name) ? item.given_name + " " + item.family_name : item.login'
+          user_traits:
+            login: cel:item.login
+            emails:
+              - cel:item.primary_email
+            status: cel:item.status
+            account_type: cel:item.account_type
+            profile:
+              employee_id: cel:item.employee_id
+              given_name: cel:item.given_name
+              family_name: cel:item.family_name
+    skip_entitlements_and_grants: true
+
+  audience_member:
+    name: Audience Member
+    description: Symphony customers — patrons, subscribers, comp recipients.
+    traits:
+      - user
+    list:
+      request:
+        url: /audience_members
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: 'cel:has(item.given_name) && has(item.family_name) ? item.given_name + " " + item.family_name : item.login'
+          user_traits:
+            login: cel:item.login
+            emails:
+              - cel:item.primary_email
+            status: cel:item.status
+            profile:
+              loyalty_tier: cel:item.loyalty_tier
+              loyalty_points: cel:item.loyalty_points
+    skip_entitlements_and_grants: true
+
+  # -----------------------------------------------------------------------
+  # Group-typed: sections (1st violins, brass, etc.) and ensembles
+  # (full orchestra, chamber, pit).
+  # -----------------------------------------------------------------------
+
+  section:
+    name: Section
+    description: Instrument section — strings, brass, etc.
+    traits:
+      - group
+    list:
+      request:
+        url: /sections
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: cel:item.name
+          description: cel:item.description
+          group_traits:
+            profile:
+              name: cel:item.name
+    static_entitlements:
+      - id: member
+        slug: member
+        display_name: tmpl:"{{.resource.display_name}} member"
+        description: tmpl:"Member of section {{.resource.display_name}}"
+        purpose: assignment
+        grantable_to:
+          - musician
+      - id: principal
+        slug: principal
+        display_name: tmpl:"{{.resource.display_name}} principal"
+        description: tmpl:"Principal player of section {{.resource.display_name}}"
+        purpose: assignment
+        grantable_to:
+          - musician
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=section&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: conditional_grant
+          conditional_grant_mappings:
+            conditions:
+              - condition: cel:item.entitlement.slug == "section:principal"
+                grant_mapping:
+                  principal_id: cel:string(item.principal.id)
+                  principal_type: cel:item.principal.resource_type
+                  entitlement_name: principal
+            default:
+              principal_id: cel:string(item.principal.id)
+              principal_type: cel:item.principal.resource_type
+              entitlement_name: member
+
+  ensemble:
+    name: Ensemble
+    description: Performance ensemble — full orchestra, chamber, pit, quartet.
+    traits:
+      - group
+    list:
+      request:
+        url: /ensembles
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: cel:item.name
+          description: cel:item.description
+          group_traits:
+            profile:
+              name: cel:item.name
+              kind: cel:item.kind
+    static_entitlements:
+      - id: member
+        slug: member
+        display_name: tmpl:"{{.resource.display_name}} member"
+        purpose: assignment
+        grantable_to:
+          - musician
+      - id: concertmaster
+        slug: concertmaster
+        display_name: tmpl:"{{.resource.display_name}} concertmaster"
+        purpose: assignment
+        grantable_to:
+          - musician
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=ensemble&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: conditional_grant
+          conditional_grant_mappings:
+            conditions:
+              - condition: cel:item.entitlement.slug == "ensemble:concertmaster"
+                grant_mapping:
+                  principal_id: cel:string(item.principal.id)
+                  principal_type: cel:item.principal.resource_type
+                  entitlement_name: concertmaster
+            default:
+              principal_id: cel:string(item.principal.id)
+              principal_type: cel:item.principal.resource_type
+              entitlement_name: member
+
+  # -----------------------------------------------------------------------
+  # Role-trait + App-trait
+  # -----------------------------------------------------------------------
+
+  role:
+    name: Role
+    description: RBAC role (music_director, librarian, box_office_agent, etc.)
+    traits:
+      - role
+    list:
+      request:
+        url: /roles
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: cel:item.display_name
+          description: cel:item.description
+          role_traits:
+            profile:
+              slug: cel:item.slug
+              name: cel:item.display_name
+    static_entitlements:
+      - id: member
+        slug: member
+        display_name: tmpl:"{{.resource.display_name}} member"
+        description: tmpl:"Holds the {{.resource.display_name}} role"
+        purpose: assignment
+        grantable_to:
+          - musician
+          - audience_member
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=role&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: grant
+          grant_mapping:
+            principal_id: cel:string(item.principal.id)
+            principal_type: cel:item.principal.resource_type
+            entitlement_name: member
+
+  application:
+    name: Application
+    description: Operational app (scheduler, music library portal, etc.)
+    traits:
+      - app
+    list:
+      request:
+        url: /applications
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: cel:item.display_name
+          app_traits:
+            help_url: cel:item.help_url
+            profile:
+              slug: cel:item.slug
+    static_entitlements:
+      - id: assigned
+        slug: assigned
+        display_name: tmpl:"{{.resource.display_name}} access"
+        description: tmpl:"Has access to {{.resource.display_name}}"
+        purpose: assignment
+        grantable_to:
+          - musician
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=application&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: grant
+          grant_mapping:
+            principal_id: cel:string(item.principal.id)
+            principal_type: cel:item.principal.resource_type
+            entitlement_name: assigned
+
+  # -----------------------------------------------------------------------
+  # Untraited operational resources.
+  # Each carries permission + ownership entitlements depending on what's
+  # actually populated in the schema.
+  # -----------------------------------------------------------------------
+
+  instrument:
+    name: Instrument
+    description: Checkoutable orchestral instrument.
+    list:
+      request:
+        url: /instruments
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: 'cel:item.asset_tag + " (" + item.kind + ")"'
+          description: cel:item.kind
+    static_entitlements:
+      - id: checkout
+        slug: checkout
+        display_name: tmpl:"Checkout {{.resource.display_name}}"
+        purpose: permission
+        grantable_to:
+          - musician
+      - id: owner
+        slug: owner
+        display_name: tmpl:"{{.resource.display_name}} owner"
+        purpose: ownership
+        grantable_to:
+          - musician
+      - id: curator
+        slug: curator
+        display_name: tmpl:"{{.resource.display_name}} curator"
+        purpose: ownership
+        grantable_to:
+          - musician
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=instrument&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: conditional_grant
+          conditional_grant_mappings:
+            conditions:
+              - condition: cel:item.entitlement.slug == "instrument:owner"
+                grant_mapping:
+                  principal_id: cel:string(item.principal.id)
+                  principal_type: cel:item.principal.resource_type
+                  entitlement_name: owner
+              - condition: cel:item.entitlement.slug == "instrument:curator"
+                grant_mapping:
+                  principal_id: cel:string(item.principal.id)
+                  principal_type: cel:item.principal.resource_type
+                  entitlement_name: curator
+            default:
+              principal_id: cel:string(item.principal.id)
+              principal_type: cel:item.principal.resource_type
+              entitlement_name: checkout
+
+  equipment:
+    name: Equipment
+    description: Stage equipment — stands, microphones, cables, mutes.
+    list:
+      request:
+        url: /equipment
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: 'cel:item.asset_tag + " (" + item.category + ")"'
+          description: cel:item.description
+    static_entitlements:
+      - id: checkout
+        slug: checkout
+        display_name: tmpl:"Checkout {{.resource.display_name}}"
+        purpose: permission
+        grantable_to:
+          - musician
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=equipment&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: grant
+          grant_mapping:
+            principal_id: cel:string(item.principal.id)
+            principal_type: cel:item.principal.resource_type
+            entitlement_name: checkout
+
+  sheet_music:
+    name: Sheet Music
+    description: Library score / part.
+    list:
+      request:
+        url: /sheet_music
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: 'cel:item.composer + " — " + item.title'
+          description: cel:item.title
+    static_entitlements:
+      - id: read
+        slug: read
+        display_name: tmpl:"Read {{.resource.display_name}}"
+        purpose: permission
+        grantable_to:
+          - musician
+      - id: owner
+        slug: owner
+        display_name: tmpl:"{{.resource.display_name}} owner"
+        purpose: ownership
+        grantable_to:
+          - musician
+      - id: curator
+        slug: curator
+        display_name: tmpl:"{{.resource.display_name}} curator"
+        purpose: ownership
+        grantable_to:
+          - musician
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=sheet_music&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: conditional_grant
+          conditional_grant_mappings:
+            conditions:
+              - condition: cel:item.entitlement.slug == "sheet_music:owner"
+                grant_mapping:
+                  principal_id: cel:string(item.principal.id)
+                  principal_type: cel:item.principal.resource_type
+                  entitlement_name: owner
+              - condition: cel:item.entitlement.slug == "sheet_music:curator"
+                grant_mapping:
+                  principal_id: cel:string(item.principal.id)
+                  principal_type: cel:item.principal.resource_type
+                  entitlement_name: curator
+            default:
+              principal_id: cel:string(item.principal.id)
+              principal_type: cel:item.principal.resource_type
+              entitlement_name: read
+
+  performance:
+    name: Performance
+    description: Scheduled rehearsal / concert / recording.
+    list:
+      request:
+        url: /performances
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: 'cel:item.kind + " on " + item.scheduled_at'
+          description: cel:item.kind
+    static_entitlements:
+      - id: attend
+        slug: attend
+        display_name: tmpl:"Attend {{.resource.display_name}}"
+        description: tmpl:"Holder has a ticket to {{.resource.display_name}}"
+        purpose: permission
+        grantable_to:
+          - audience_member
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=performance&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: grant
+          grant_mapping:
+            principal_id: cel:string(item.principal.id)
+            principal_type: cel:item.principal.resource_type
+            entitlement_name: attend
+
+  season_subscription:
+    name: Season Subscription
+    description: Multi-performance ticket bundle held by an audience member.
+    list:
+      request:
+        url: /season_subscriptions
+      response:
+        items_path: data
+        mapping_type: resource
+        resource_mapping:
+          id: cel:string(item.id)
+          display_name: cel:item.display_name
+          description: cel:item.description
+    static_entitlements:
+      - id: holder
+        slug: holder
+        display_name: tmpl:"{{.resource.display_name}} holder"
+        description: tmpl:"Holder of {{.resource.display_name}}"
+        purpose: assignment
+        grantable_to:
+          - audience_member
+    grants:
+      - request:
+          url: tmpl:/grants?resource_type=season_subscription&resource_id={{.resource.id}}
+        response:
+          items_path: data
+          mapping_type: grant
+          grant_mapping:
+            principal_id: cel:string(item.principal.id)
+            principal_type: cel:item.principal.resource_type
+            entitlement_name: holder

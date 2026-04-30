@@ -186,12 +186,14 @@ resource_types:
       - id: member
         slug: member
         display_name: tmpl:"{{.resource.display_name}} member"
+        description: tmpl:"Member of ensemble {{.resource.display_name}}"
         purpose: assignment
         grantable_to:
           - musician
       - id: concertmaster
         slug: concertmaster
         display_name: tmpl:"{{.resource.display_name}} concertmaster"
+        description: tmpl:"Concertmaster of ensemble {{.resource.display_name}}"
         purpose: assignment
         grantable_to:
           - musician
@@ -316,18 +318,21 @@ resource_types:
       - id: checkout
         slug: checkout
         display_name: tmpl:"Checkout {{.resource.display_name}}"
+        description: tmpl:"Currently checked out {{.resource.display_name}}"
         purpose: permission
         grantable_to:
           - musician
       - id: owner
         slug: owner
         display_name: tmpl:"{{.resource.display_name}} owner"
+        description: tmpl:"Primary owner of {{.resource.display_name}}"
         purpose: ownership
         grantable_to:
           - musician
       - id: curator
         slug: curator
         display_name: tmpl:"{{.resource.display_name}} curator"
+        description: tmpl:"Curator of {{.resource.display_name}}"
         purpose: ownership
         grantable_to:
           - musician
@@ -371,6 +376,7 @@ resource_types:
       - id: checkout
         slug: checkout
         display_name: tmpl:"Checkout {{.resource.display_name}}"
+        description: tmpl:"Currently checked out {{.resource.display_name}}"
         purpose: permission
         grantable_to:
           - musician
@@ -402,18 +408,21 @@ resource_types:
       - id: read
         slug: read
         display_name: tmpl:"Read {{.resource.display_name}}"
+        description: tmpl:"Granted read access to {{.resource.display_name}}"
         purpose: permission
         grantable_to:
           - musician
       - id: owner
         slug: owner
         display_name: tmpl:"{{.resource.display_name}} owner"
+        description: tmpl:"Primary owner of {{.resource.display_name}}"
         purpose: ownership
         grantable_to:
           - musician
       - id: curator
         slug: curator
         display_name: tmpl:"{{.resource.display_name}} curator"
+        description: tmpl:"Curator of {{.resource.display_name}}"
         purpose: ownership
         grantable_to:
           - musician

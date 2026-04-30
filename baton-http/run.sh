@@ -31,7 +31,10 @@ if ! command -v "$BATON_HTTP" >/dev/null 2>&1 && [ ! -x "$BATON_HTTP" ]; then
     read -r -p "'$BATON_HTTP' not found. go install github.com/conductorone/baton-http/cmd/baton-http@latest? [Y/n] " reply
     case "$reply" in
       ""|y|Y|yes|YES)
-        echo "→ go install github.com/conductorone/baton-http/cmd/baton-http@latest"
+        # baton-http is a private repo; GOPRIVATE bypasses sum.golang.org
+        # which can't read private modules.
+        export GOPRIVATE="github.com/conductorone/*${GOPRIVATE:+,$GOPRIVATE}"
+        echo "→ GOPRIVATE='$GOPRIVATE' go install github.com/conductorone/baton-http/cmd/baton-http@latest"
         go install github.com/conductorone/baton-http/cmd/baton-http@latest
 
         # The install lands in $GOBIN or $GOPATH/bin (default ~/go/bin).

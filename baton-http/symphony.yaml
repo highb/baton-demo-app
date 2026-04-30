@@ -147,7 +147,10 @@ resource_types:
           - musician
     grants:
       - request:
-          url: tmpl:/grants?resource_type=section&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: section
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: conditional_grant
@@ -199,7 +202,10 @@ resource_types:
           - musician
     grants:
       - request:
-          url: tmpl:/grants?resource_type=ensemble&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: ensemble
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: conditional_grant
@@ -249,7 +255,10 @@ resource_types:
           - audience_member
     grants:
       - request:
-          url: tmpl:/grants?resource_type=role&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: role
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: grant
@@ -286,7 +295,10 @@ resource_types:
           - musician
     grants:
       - request:
-          url: tmpl:/grants?resource_type=application&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: application
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: grant
@@ -338,7 +350,10 @@ resource_types:
           - musician
     grants:
       - request:
-          url: tmpl:/grants?resource_type=instrument&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: instrument
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: conditional_grant
@@ -382,7 +397,10 @@ resource_types:
           - musician
     grants:
       - request:
-          url: tmpl:/grants?resource_type=equipment&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: equipment
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: grant
@@ -428,7 +446,10 @@ resource_types:
           - musician
     grants:
       - request:
-          url: tmpl:/grants?resource_type=sheet_music&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: sheet_music
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: conditional_grant
@@ -472,7 +493,10 @@ resource_types:
           - audience_member
     grants:
       - request:
-          url: tmpl:/grants?resource_type=performance&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: performance
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: grant
@@ -504,7 +528,10 @@ resource_types:
           - audience_member
     grants:
       - request:
-          url: tmpl:/grants?resource_type=season_subscription&resource_id={{.resource.id}}
+          url: /grants
+          query_params:
+            resource_type: season_subscription
+            resource_id: tmpl:{{.resource.id}}
         response:
           items_path: data
           mapping_type: grant

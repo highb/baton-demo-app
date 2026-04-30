@@ -42,7 +42,11 @@ fi
 ARGS=( --config-path "$CONFIG_PATH" )
 
 if [ -n "${C1_CLIENT_ID:-}" ] && [ -n "${C1_CLIENT_SECRET:-}" ]; then
-  echo "running in service mode (streaming to ConductorOne)"
+  if [ -n "${BATON_C1_API_HOST:-}" ]; then
+    echo "running in service mode → $BATON_C1_API_HOST"
+  else
+    echo "running in service mode → host parsed from client-secret (typically prod)"
+  fi
   ARGS+=( --client-id "$C1_CLIENT_ID" --client-secret "$C1_CLIENT_SECRET" )
 else
   echo "running in local sync mode (writes .c1z file)"

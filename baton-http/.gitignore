@@ -5,6 +5,9 @@
 *.c1z
 sync.c1z
 
+# Built binary from run.sh's sibling-source build step.
+baton-http-bin
+
 # Editor swap files.
 *.swp
 *.swo

@@ -26,6 +26,22 @@ fi
 : "${BATON_HTTP:=baton-http}"
 export SYMPHONY_API_TOKEN
 
+# Prefer building from a sibling baton-http checkout — keeps us on the
+# latest local code without manual reinstall steps. Set
+# BATON_HTTP_SKIP_BUILD=1 to skip and use whatever's on PATH.
+if [ -z "${BATON_HTTP_SKIP_BUILD:-}" ] && command -v go >/dev/null 2>&1; then
+  for candidate in ../../baton-http ../../../baton-http; do
+    if [ -f "$candidate/cmd/baton-http/main.go" ]; then
+      sibling_src="$(cd "$candidate" && pwd)"
+      out="$PWD/baton-http-bin"
+      echo "→ go build -o baton-http-bin ./cmd/baton-http  (in $sibling_src)"
+      ( cd "$sibling_src" && go build -o "$out" ./cmd/baton-http )
+      BATON_HTTP="$out"
+      break
+    fi
+  done
+fi
+
 if ! command -v "$BATON_HTTP" >/dev/null 2>&1 && [ ! -x "$BATON_HTTP" ]; then
   if command -v go >/dev/null 2>&1 && [ -t 0 ]; then
     read -r -p "'$BATON_HTTP' not found. go install github.com/conductorone/baton-http/cmd/baton-http@latest? [Y/n] " reply

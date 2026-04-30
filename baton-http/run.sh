@@ -27,7 +27,33 @@ fi
 export SYMPHONY_API_TOKEN
 
 if ! command -v "$BATON_HTTP" >/dev/null 2>&1 && [ ! -x "$BATON_HTTP" ]; then
-  cat >&2 <<EOF
+  if command -v go >/dev/null 2>&1 && [ -t 0 ]; then
+    read -r -p "'$BATON_HTTP' not found. go install github.com/conductorone/baton-http/cmd/baton-http@latest? [Y/n] " reply
+    case "$reply" in
+      ""|y|Y|yes|YES)
+        echo "→ go install github.com/conductorone/baton-http/cmd/baton-http@latest"
+        go install github.com/conductorone/baton-http/cmd/baton-http@latest
+
+        # The install lands in $GOBIN or $GOPATH/bin (default ~/go/bin).
+        # Make sure that dir is on PATH for the rest of this script.
+        gobin="$(go env GOBIN 2>/dev/null)"
+        [ -z "$gobin" ] && gobin="$(go env GOPATH 2>/dev/null)/bin"
+        export PATH="$gobin:$PATH"
+
+        if ! command -v "$BATON_HTTP" >/dev/null 2>&1; then
+          echo >&2 "installed, but '$BATON_HTTP' still isn't on PATH."
+          echo >&2 "add this to your shell profile:  export PATH=\"$gobin:\$PATH\""
+          exit 1
+        fi
+        echo "→ installed at $(command -v "$BATON_HTTP")"
+        ;;
+      *)
+        echo "skipping install. point BATON_HTTP at a binary or run go install yourself."
+        exit 1
+        ;;
+    esac
+  else
+    cat >&2 <<EOF
 error: '$BATON_HTTP' not found.
 
 Install with:
@@ -36,7 +62,8 @@ Install with:
 Or point BATON_HTTP at a local build:
   BATON_HTTP=../../baton-http/baton-http ./run.sh
 EOF
-  exit 1
+    exit 1
+  fi
 fi
 
 ARGS=( --config-path "$CONFIG_PATH" )
